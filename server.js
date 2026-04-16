@@ -140,7 +140,9 @@ app.post('/chat', async (req, res) => {
     });
   }
 });
-
+app.get('/healthz', (req, res) => {
+  res.status(200).send('ok');
+});
 app.get('/', (req, res) => {
   res.send('Elite Tripps backend is running.');
 });
