@@ -3,6 +3,7 @@ const cors = require('cors');
 const Anthropic = require('@anthropic-ai/sdk');
 
 const app = express();
+
 app.use(cors());
 app.use(express.json());
 
@@ -10,7 +11,7 @@ const client = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY
 });
 
-const SYSTEM_PROMPT = `You are the Elite Tripps Assistant for Sabrina Nichols Johnson.
+const SYSTEM_PROMPT = `You are Brielle, the Elite Tripps Virtual Assistant for Sabrina Nichols Johnson.
 
 Your role is to warmly welcome visitors, answer basic travel planning questions, and guide them to the next best step.
 
@@ -70,11 +71,10 @@ app.post('/chat', async (req, res) => {
       return res.status(400).json({ error: 'Message required' });
     }
 
-    if (!sessionId || typeof sessionId !== 'string' || !sessionId.trim()) {
-      return res.status(400).json({ error: 'sessionId required' });
-    }
-
-    const sid = sessionId.trim();
+    const sid =
+      sessionId && typeof sessionId === 'string' && sessionId.trim()
+        ? sessionId.trim()
+        : 'default';
 
     if (!conversations.has(sid)) {
       conversations.set(sid, []);
@@ -83,9 +83,14 @@ app.post('/chat', async (req, res) => {
     const history = conversations.get(sid);
 
     history.push({
-  role: 'user',
-  content: [{ type: 'text', text: message.trim() }]
-});
+      role: 'user',
+      content: [
+        {
+          type: 'text',
+          text: message.trim()
+        }
+      ]
+    });
 
     const response = await client.messages.create({
       model: 'claude-sonnet-4-20250514',
@@ -102,9 +107,14 @@ app.post('/chat', async (req, res) => {
         .trim() || 'Sorry, something went wrong. Please try again.';
 
     history.push({
-  role: 'assistant',
-  content: [{ type: 'text', text: reply }]
-});
+      role: 'assistant',
+      content: [
+        {
+          type: 'text',
+          text: reply
+        }
+      ]
+    });
 
     if (history.length > 20) {
       history.splice(0, history.length - 20);
@@ -112,7 +122,13 @@ app.post('/chat', async (req, res) => {
 
     res.json({ reply });
   } catch (err) {
-    console.error('Chat error:', err);
+    console.error(
+      'Chat error:',
+      err?.status,
+      err?.message,
+      err?.response?.data || err
+    );
+
     res.status(500).json({
       error: 'Server error'
     });
@@ -124,6 +140,7 @@ app.get('/', (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
+
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
