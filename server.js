@@ -83,9 +83,9 @@ app.post('/chat', async (req, res) => {
     const history = conversations.get(sid);
 
     history.push({
-      role: 'user',
-      content: message.trim()
-    });
+  role: 'user',
+  content: [{ type: 'text', text: message.trim() }]
+});
 
     const response = await client.messages.create({
       model: 'claude-sonnet-4-20250514',
@@ -102,9 +102,9 @@ app.post('/chat', async (req, res) => {
         .trim() || 'Sorry, something went wrong. Please try again.';
 
     history.push({
-      role: 'assistant',
-      content: reply
-    });
+  role: 'assistant',
+  content: [{ type: 'text', text: reply }]
+});
 
     if (history.length > 20) {
       history.splice(0, history.length - 20);
