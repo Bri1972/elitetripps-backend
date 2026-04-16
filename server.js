@@ -7,6 +7,11 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.url}`);
+  next();
+});
+
 const client = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY
 });
@@ -67,6 +72,9 @@ app.post('/chat', async (req, res) => {
   try {
     const { message, sessionId } = req.body;
 
+    console.log('Incoming /chat body:', req.body);
+    console.log('Has API key:', !!process.env.ANTHROPIC_API_KEY);
+
     if (!message || typeof message !== 'string' || !message.trim()) {
       return res.status(400).json({ error: 'Message required' });
     }
@@ -93,7 +101,7 @@ app.post('/chat', async (req, res) => {
     });
 
     const response = await client.messages.create({
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-3-5-sonnet-latest',
       max_tokens: 1024,
       system: SYSTEM_PROMPT,
       messages: history
@@ -122,12 +130,10 @@ app.post('/chat', async (req, res) => {
 
     res.json({ reply });
   } catch (err) {
-    console.error(
-      'Chat error:',
-      err?.status,
-      err?.message,
-      err?.response?.data || err
-    );
+    console.error('Chat error message:', err?.message);
+    console.error('Chat error status:', err?.status);
+    console.error('Chat error response:', err?.response?.data || err?.response);
+    console.error('Chat error stack:', err?.stack);
 
     res.status(500).json({
       error: 'Server error'
