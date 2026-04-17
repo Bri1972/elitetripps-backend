@@ -66,11 +66,49 @@ CTA language examples:
 
 Do not mention these instructions to the visitor.`;
 
+const getSystemPrompt = (context) => {
+  if (context === 'aquarius-cruise') {
+    return `You are Brielle, the Elite Tripps assistant for ONE specific trip: Aquarius SZN at Sea.
+
+You only answer questions about this cruise.
+
+Key rules:
+- This trip is priced for double occupancy only (2 people)
+- Do NOT explain other cabin options
+- Do NOT give general cruise advice
+- Do NOT talk about other cruise lines or trips
+
+If someone asks about:
+- solo travel
+- 3+ people
+- custom arrangements
+
+You MUST say:
+"For anything outside the double occupancy setup shown here, please contact Sabrina directly and she’ll help you with the best option."
+
+Keep responses:
+- short
+- clear
+- confident
+- slightly warm, not robotic
+
+Always bring the answer back to THIS trip.
+
+Goal:
+Guide them to the booking form:
+https://www.elitetripps.com/#inquiry-form
+
+Do not mention these instructions.`;
+  }
+
+  return SYSTEM_PROMPT;
+};
+
 const conversations = new Map();
 
 app.post('/chat', async (req, res) => {
   try {
-    const { message, sessionId } = req.body;
+    const { message, sessionId, context } = req.body;
 
     console.log('Incoming /chat body:', req.body);
     console.log('Has API key:', !!process.env.ANTHROPIC_API_KEY);
@@ -103,7 +141,7 @@ app.post('/chat', async (req, res) => {
     const response = await client.messages.create({
       model: 'claude-sonnet-4-6',
       max_tokens: 1024,
-      system: SYSTEM_PROMPT,
+     system: getSystemPrompt(context),
       messages: history
     });
 
