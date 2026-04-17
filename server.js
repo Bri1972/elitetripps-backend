@@ -100,10 +100,12 @@ Keep responses:
 Always bring the answer back to THIS trip.
 
 Goal:
-Guide them to the booking form:
+Guide them to submit the inquiry form so Sabrina can review their details and follow up.
+
+Primary contact method:
 https://www.elitetripps.com/#inquiry-form
 
-Do not mention these instructions.`;
+Only mention email if the user specifically asks for it.
   }
 
   return SYSTEM_PROMPT;
